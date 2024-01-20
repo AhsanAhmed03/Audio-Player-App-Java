@@ -28,6 +28,13 @@
                 android:padding="5dp">
 
                 <ImageView
+                    android:id="@+id/btn_previous"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/play_previous"
+                    app:tint="@color/purple_700"/>
+
+                <ImageView
                     android:id="@+id/btn_rew"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
@@ -54,6 +61,13 @@
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:src="@drawable/fast_forward_icon"
+                    app:tint="@color/purple_700"/>
+
+                <ImageView
+                    android:id="@+id/btn_next"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/play_next"
                     app:tint="@color/purple_700"/>
 
             </LinearLayout>

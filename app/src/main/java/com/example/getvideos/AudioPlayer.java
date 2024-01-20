@@ -3,16 +3,24 @@ package com.example.getvideos;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class AudioPlayer extends AppCompatActivity {
@@ -23,7 +31,10 @@ public class AudioPlayer extends AppCompatActivity {
 
     SeekBar seekBar;
 
-    ImageView rewind, play, pause, forward;
+    private List<String> audioPaths;
+    private int currentPosition;
+
+    ImageView rewind, play, pause, forward,play_next, play_previous;
 
     MediaPlayer mediaPlayer;
     Handler handler;
@@ -34,8 +45,10 @@ public class AudioPlayer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_player);
 
-        Intent intent = getIntent();
-        audio_path = intent.getStringExtra("Audio_path");
+        // Retrieve the list of audio paths and selected position from the intent
+        audioPaths = getIntent().getStringArrayListExtra("AudioPaths_list");
+        currentPosition = getIntent().getIntExtra("SelectedPosition", 0);
+
 
         playerpos = findViewById(R.id.playerPosition);
         playerdur = findViewById(R.id.playerDuration);
@@ -44,6 +57,8 @@ public class AudioPlayer extends AppCompatActivity {
         pause = findViewById(R.id.btn_pause);
         play = findViewById(R.id.btn_ply);
         forward = findViewById(R.id.btn_frwd);
+        play_next = findViewById(R.id.btn_next);
+        play_previous = findViewById(R.id.btn_previous);
 
         mediaPlayer = new MediaPlayer();
 
@@ -60,12 +75,12 @@ public class AudioPlayer extends AppCompatActivity {
         String sDuration = convertFormat(duration);
         playerdur.setText(sDuration);
 
-        try {
-            mediaPlayer.setDataSource(audio_path);
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        // Initialize MediaPlayer
+        mediaPlayer = new MediaPlayer();
+
+        // Initialize and start playback using the first audio path
+        initializeMediaPlayer(audioPaths.get(currentPosition));
+        playAudio();
 
         play.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,6 +130,20 @@ public class AudioPlayer extends AppCompatActivity {
             }
         });
 
+        play_next.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playNextAudio();
+            }
+        });
+
+        play_previous.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playPreviousAudio();
+            }
+        });
+
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -144,6 +173,58 @@ public class AudioPlayer extends AppCompatActivity {
         });
 
     }
+
+    // Method to play the next audio
+    private void playNextAudio() {
+        if (currentPosition < audioPaths.size() - 1) {
+            currentPosition++;
+            stopAudio();
+            initializeMediaPlayer(audioPaths.get(currentPosition));
+            playAudio();
+        } else {
+            // You can handle the case when there are no more songs (wrap around, display a message, etc.)
+        }
+    }
+
+    // Method to play the previous audio
+    private void playPreviousAudio() {
+        if (currentPosition > 0) {
+            currentPosition--;
+            stopAudio();
+            initializeMediaPlayer(audioPaths.get(currentPosition));
+            playAudio();
+        } else {
+            // You can handle the case when you are at the beginning of the list
+        }
+    }
+
+    // Method to stop the currently playing audio
+    private void stopAudio() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.reset();
+        }
+    }
+
+    // Method to initialize MediaPlayer with the given audio path
+    private void initializeMediaPlayer(String path) {
+        try {
+            mediaPlayer.setDataSource(path);
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            Log.e("AudioPlayerException", "Error initializing MediaPlayer: " + e.getMessage());
+        }
+    }
+
+    // Method to start playing audio
+    private void playAudio() {
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+            play.setVisibility(View.GONE);
+            pause.setVisibility(View.VISIBLE);
+        }
+    }
+
 
     @Override
     public void onBackPressed() {

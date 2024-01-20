@@ -1,5 +1,6 @@
 package com.example.getvideos;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -32,16 +33,25 @@ public class AudioAdapter extends RecyclerView.Adapter<AudioAdapter.AudioViewHol
     }
 
     @Override
-    public void onBindViewHolder(@NonNull AudioViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull AudioViewHolder holder, @SuppressLint("RecyclerView") int position) {
         AudioModel audioModel = audios.get(position);
         holder.titleText.setText(audioModel.getTitle());
         holder.pathText.setText(audioModel.getPath());
         String path = audioModel.getPath();
+
+        ArrayList<String> audioPaths = new ArrayList<>();
+        for (AudioModel audio : audios) {
+            audioPaths.add(audio.getPath());
+        }
+
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context,AudioPlayer.class);
-                intent.putExtra("Audio_path",path);
+                // Pass the list of audio paths through the intent
+                intent.putStringArrayListExtra("AudioPaths_list", audioPaths);
+                // Pass the selected position to start playing from that position
+                intent.putExtra("SelectedPosition", position);
                 context.startActivity(intent);
             }
         });
